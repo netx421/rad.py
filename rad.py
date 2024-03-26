@@ -57,7 +57,10 @@ class RadioApp(QWidget):
         modulation_type = "AM" if self.am_radio.isChecked() else "FM" if self.fm_radio.isChecked() else "NFM"
 
         # Build radio command
-        radio_command = f"rtl_fm -f {frequency_entry_value}e6 -M {modulation_type} -s 200000 -r 32000 - | sox -t raw -r 44100 -b 16 -e signed-integer -c 1 - -t raw - lowpass 3k | play -q -r 32000 -t raw -e signed-integer -b 16 -c 1 -V1 -"
+        if modulation_type == "AM":
+            radio_command = f"rtl_fm -M am -f {frequency_entry_value}e6 -s 60k - | sox -t raw -r 60000 -b 16 -e signed-integer -c 1 - -t raw - lowpass 1k | play -q -r 60000 -t raw -e signed-integer -b 16 -c 1 -V1 -"
+        else:
+            radio_command = f"rtl_fm -f {frequency_entry_value}e6 -M {modulation_type} -s 200000 -r 32000 - | sox -t raw -r 44100 -b 16 -e signed-integer -c 1 - -t raw - lowpass 3k | play -q -r 32000 -t raw -e signed-integer -b 16 -c 1 -V1 -"
 
         try:
             # Run radio command
