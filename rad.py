@@ -3,7 +3,7 @@
 #please share and use the code for your own needs
 import sys
 import subprocess
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout, QMessageBox
 
 class RadioApp(QWidget):
     def __init__(self):
@@ -17,9 +17,13 @@ class RadioApp(QWidget):
         self.am_radio = QRadioButton("AM")
         self.fm_radio = QRadioButton("FM")
         self.nfm_radio = QRadioButton("NFM")
+        self.fm_radio.setChecked(True)  # Default to FM
 
         # Start/Stop button
         self.start_stop_button = QPushButton("Start Radio")
+
+        # Feedback label
+        self.feedback_label = QLabel("")
 
         # Layout setup
         layout = QVBoxLayout()
@@ -34,6 +38,7 @@ class RadioApp(QWidget):
         layout.addLayout(radio_layout)
 
         layout.addWidget(self.start_stop_button)
+        layout.addWidget(self.feedback_label)
 
         self.setLayout(layout)
 
@@ -53,6 +58,11 @@ class RadioApp(QWidget):
         # Get values from radio control elements
         frequency_entry_value = self.frequency_entry.text()
 
+        # Check for empty frequency entry
+        if not frequency_entry_value:
+            self.feedback_label.setText("Please enter a frequency.")
+            return
+
         # Determine selected modulation type
         modulation_type = "AM" if self.am_radio.isChecked() else "FM" if self.fm_radio.isChecked() else "NFM"
 
@@ -65,32 +75,27 @@ class RadioApp(QWidget):
         try:
             # Run radio command
             self.radio_process = subprocess.Popen(radio_command, shell=True)
-        except PermissionError:
-            # Use sudo if permission error occurs
-            radio_command = f"sudo {radio_command}"
-            self.radio_process = subprocess.Popen(radio_command, shell=True)
-
-        # Display feedback about the radio operations
-        print("Starting radio with frequency:", frequency_entry_value, "Modulation type:", modulation_type)
-
-        # Update radio state
-        self.is_radio_running = True
-        self.start_stop_button.setText("Stop Radio")
+            # Display feedback about the radio operations
+            self.feedback_label.setText(f"Starting radio with frequency: {frequency_entry_value} MHz, Modulation type: {modulation_type}")
+            self.is_radio_running = True
+            self.start_stop_button.setText("Stop Radio")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to start radio: {str(e)}")
 
     def stop_radio(self):
-        # Use pkill to stop the radio process
-        subprocess.run(["pkill", "-f", "rtl_fm"])
-
-        # Display feedback about stopping the radio
-        print("Stopping radio")
-
-        # Update radio state
-        self.is_radio_running = False
-        self.start_stop_button.setText("Start Radio")
+        try:
+            # Use pkill to stop the radio process
+            subprocess.run(["pkill", "-f", "rtl_fm"])
+            self.feedback_label.setText("Stopping radio")
+            self.is_radio_running = False
+            self.start_stop_button.setText("Start Radio")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to stop radio: {str(e)}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     radio_app = RadioApp()
     radio_app.show()
     sys.exit(app.exec_())
+
 
