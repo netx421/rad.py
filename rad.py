@@ -76,7 +76,7 @@ class RadioApp(QWidget):
             # Run radio command
             self.radio_process = subprocess.Popen(radio_command, shell=True)
             # Display feedback about the radio operations
-            self.feedback_label.setText(f"Starting radio with frequency: {frequency_entry_value} MHz, Modulation type: {modulation_type}")
+            self.feedback_label.setText(f"Listening on frequency: {frequency_entry_value} MHz, Modulation type: {modulation_type}")
             self.is_radio_running = True
             self.start_stop_button.setText("Stop Radio")
         except Exception as e:
@@ -86,7 +86,7 @@ class RadioApp(QWidget):
         try:
             # Use pkill to stop the radio process
             subprocess.run(["pkill", "-f", "rtl_fm"])
-            self.feedback_label.setText("Stopping radio")
+            self.feedback_label.setText("Radio Stopped")
             self.is_radio_running = False
             self.start_stop_button.setText("Start Radio")
         except Exception as e:
